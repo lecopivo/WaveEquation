@@ -7,20 +7,20 @@ namespace Magnum {
 using namespace Magnum::Math::Literals;
 
 DrawableMesh::DrawableMesh(Object3D *parent, SceneGraph::DrawableGroup3D *group)
-    : Object3D{parent}, SceneGraph::Drawable3D{*this, group} {}
-
-void DrawableMesh::bindBuffers(std::vector<VertexData> const &data) {
-
-  _vertexBuffer.setData(data, BufferUsage::DynamicDraw);
-  _indexBuffer.setData(_indices, BufferUsage::StaticDraw);
-
+    : Object3D{parent}, SceneGraph::Drawable3D{*this, group} {
   using Shader = Shaders::Generic3D;
-
   _mesh.setPrimitive(MeshPrimitive::Triangles)
       .setCount(_indices.size())
       .addVertexBuffer(_vertexBuffer, 0, Shader::Position{}, Shader::Normal{},
                        Shader::Color{Shader::Color::Components::Four})
       .setIndexBuffer(_indexBuffer, 0, Mesh::IndexType::UnsignedInt);
+}
+
+void DrawableMesh::bindBuffers(std::vector<VertexData> const &data) {
+
+  _vertexBuffer.setData(data, BufferUsage::DynamicDraw);
+  _indexBuffer.setData(_indices, BufferUsage::StaticDraw);
+  _mesh.setCount(_indices.size());
 }
 
 void DrawableMesh::draw(const Matrix4 &       transformationMatrix,
@@ -31,7 +31,7 @@ void DrawableMesh::draw(const Matrix4 &       transformationMatrix,
   //                                           transformationMatrix);
   // Phong
   _shader.setDiffuseColor(Color4{0.4f, 0.4f, 0.8f, 1.f})
-    .setAmbientColor(Color3{0.25f,0.2f,0.23f})
+      .setAmbientColor(Color3{0.25f, 0.2f, 0.23f})
       .setLightPosition(
           camera.cameraMatrix().transformPoint({5.0f, 5.0f, 7.0f}))
       .setTransformationMatrix(transformationMatrix)
@@ -130,6 +130,12 @@ DrawableLine::DrawableLine(Object3D *parent, SceneGraph::DrawableGroup3D *group,
                            int n)
     : Object3D{parent}, SceneGraph::Drawable3D{*this, group} {
   resize(n);
+  using Shader = Shaders::Generic3D;
+
+  _mesh
+      .setPrimitive(MeshPrimitive::LineStrip)
+      .addVertexBuffer(_vertexBuffer, 0, Shader::Position{},
+                       Shader::Color{Shader::Color::Components::Four});
 }
 
 void DrawableLine::resize(int n) {
@@ -149,13 +155,7 @@ void DrawableLine::resize(int n) {
 void DrawableLine::bindBuffers(std::vector<VertexData> const &data) {
 
   _vertexBuffer.setData(data, BufferUsage::DynamicDraw);
-
-  using Shader = Shaders::Generic3D;
-
-  _mesh.setPrimitive(MeshPrimitive::LineStrip)
-      .setCount(data.size())
-      .addVertexBuffer(_vertexBuffer, 0, Shader::Position{},
-                       Shader::Color{Shader::Color::Components::Four});
+  _mesh.setCount(data.size());
 }
 
 void DrawableLine::draw(const Matrix4 &       transformationMatrix,

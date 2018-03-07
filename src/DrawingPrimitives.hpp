@@ -62,7 +62,7 @@ private:
 
   void recomputeNormals(std::vector<VertexData> &data);
 
-protected:
+public:
   Mesh   _mesh;
   Buffer _vertexBuffer, _indexBuffer;
   Shader _shader;
@@ -113,7 +113,7 @@ private:
   void draw(const Matrix4 &       transformationMatrix,
             SceneGraph::Camera3D &camera) override;
 
-protected:
+public:
   Mesh   _mesh;
   Buffer _vertexBuffer;
   Shader _shader;

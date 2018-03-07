@@ -39,7 +39,7 @@ typedef SceneGraph::Scene<SceneGraph::MatrixTransformation3D>  Scene3D;
 
 struct Settings {
   bool  do_update        = true;
-  int   n                = 100;
+  int   n                = 300;
   float lambda           = 0.5;
   bool  source_on        = false;
   bool  source_move      = false;
@@ -135,9 +135,12 @@ public:
     for (int i = 1; i < n - 1; i++) {
       for (int j = 1; j < n - 1; j++) {
         if (b(i, j) != 0) {
-          v(i, j) = v0(i, j) + lambda * b(i, j) *
-                                   (-4 * u(i, j) + u(i + 1, j) + u(i - 1, j) +
-                                    u(i, j + 1) + u(i, j - 1));
+          v(i, j) = v0(i, j); // + lambda * b(i, j) *
+                              //      (-4 * u(i, j) + u(i + 1, j) + u(i - 1, j) +
+                              //       u(i, j + 1) + u(i, j - 1));
+	  v(i,j) -= lambda * 0.5* (4.0*b(i,j)+b(i+1,j)+b(i-1,j)+b(i,j+1)+b(i,j-1))*u(i,j);
+	  v(i,j) += lambda * 0.5* ( (b(i+1,j)+b(i,j))*u(i+1,j) + (b(i,j)+b(i-1,j))*u(i-1,j));
+	  v(i,j) += lambda * 0.5* ( (b(i,j+1)+b(i,j))*u(i,j+1) + (b(i,j)+b(i,j-1))*u(i,j-1));
         }
       }
     }
@@ -206,6 +209,9 @@ PrimitivesExample::PrimitivesExample(const Arguments &arguments)
   Renderer::enable(Renderer::Feature::DepthTest);
   Renderer::enable(Renderer::Feature::FaceCulling);
 
+  Renderer::setPointSize(12.0);
+  Renderer::setLineWidth(6.0);
+
   //   /* Configure camera */
   _cameraObject = new Object3D{&_scene};
   _cameraObject->translate(Vector3::zAxis(4.0f)).rotateX(Rad{M_PI / 4});
@@ -213,33 +219,47 @@ PrimitivesExample::PrimitivesExample(const Arguments &arguments)
   viewportEvent(defaultFramebuffer.viewport().size()); // set up camera
 
   /* TODO: Prepare your objects here and add them to the scene */
-  sphere = (new DrawableSphere(&_scene, &_drawables, 10, 10));
+  // sphere = (new DrawableSphere(&_scene, &_drawables, 10, 10));
 
-  sphere->setVertices([](int i, DrawableSphere::VertexData &v) {
-    v.color = Color4{1.f, 0.f, 0.f, 1.f};
-    v.position *= 1.0 / 50.0f;
-  });
+  // sphere->setVertices([](int i, DrawableSphere::VertexData &v) {
+  //   v.color = Color4{1.f, 0.f, 0.f, 1.f};
+  //   v.position *= 0.f;
+  // });
 
   plane = (new DrawablePlane(&_scene, &_drawables, sett.n - 1, sett.n - 1));
+
+  line = (new DrawableLine(&_scene, &_drawables, 2 * sett.n * sett.n));
 }
 
 void PrimitivesExample::update() {
 
-  if (sett.do_update) {
-    _wave.timesStep(sett.lambda);
-    if (sett.source_on) {
-      if (sett.source_move) {
-        _wave.applyForce(
-            fmod(sett.source_speed * 0.0015 * sett.time, 1.0) - 0.5f, 0.f,
-            0.005, sin(1.0 / sett.source_frequency * sett.time));
-      } else {
-        _wave.applyForce(_source[0], _source[1], 0.005,
-                         sin(1.0 / sett.source_frequency * sett.time));
-      }
+  _wave.timesStep(sett.lambda);
+  if (sett.source_on) {
+    if (sett.source_move) {
+      _wave.applyForce(fmod(sett.source_speed * 0.0015 * sett.time, 1.0) - 0.5f,
+                       0.f, 0.005,
+                       sin(1.0 / sett.source_frequency * sett.time));
+    } else {
+      _wave.applyForce(_source[0], _source[1], 0.005,
+                       sin(1.0 / sett.source_frequency * sett.time));
     }
-
-    sett.time += sett.lambda;
   }
+
+  sett.time += sett.lambda;
+
+  // mouse location visualization
+  // sphere->translate(
+  //     _mousePlanePosition[0] -
+  //     sphere->transformation().transformPoint(Vector3{0.f, 0.f, 0.f}));
+}
+
+void PrimitivesExample::drawEvent() {
+  defaultFramebuffer.clear(FramebufferClear::Color | FramebufferClear::Depth);
+
+  if (sett.do_update) {
+    update();
+  }
+
   // Set up wave grid visualization
   plane->setVertices([this](int i, DrawableMesh::VertexData &v) {
     int ix        = i / sett.n;
@@ -248,16 +268,30 @@ void PrimitivesExample::update() {
     v.color       = Color4::fromHsv(Rad{10.f * M_PI * v.position[2]}, 0.7, 1.0);
   });
 
-  // mouse location visualization
-  sphere->translate(
-      _mousePlanePosition[0] -
-      sphere->transformation().transformPoint(Vector3{0.f, 0.f, 0.f}));
-}
+  line->_mesh.setPrimitive(MeshPrimitive::Lines);
 
-void PrimitivesExample::drawEvent() {
-  defaultFramebuffer.clear(FramebufferClear::Color | FramebufferClear::Depth);
+  line->setVertices([this](int i, DrawableLine::VertexData &v) {
+    int   ix  = (i / 2) / sett.n;
+    int   iy  = (i / 2) % sett.n;
+    float x   = 2 * (((float)ix) / (sett.n - 1) - 0.5);
+    float y   = 2 * (((float)iy) / (sett.n - 1) - 0.5);
+    float z   = _wave.u(ix, iy);
+    float vel = _wave.v(ix, iy);
+    if (i % 2 == 0)
+      v.position = Vector3{x, y, z};
+    else
+      v.position = Vector3{x, y, z + sett.lambda * vel};
 
-  update();
+    if (ix == sett.n / 2 && iy == sett.n / 2)
+      v.color = Color4{1.0, 0., 0., 1.};
+
+    if ((abs(ix - sett.n / 2) + abs(iy - sett.n / 2)) == 1)
+      v.color = Color4{0.0, 1., 0., 1.};
+
+    if (plane->_mesh.primitive() == MeshPrimitive::Triangles)
+      v.color[3] = 0.0;
+
+  });
 
   _camera->draw(_drawables);
 
@@ -278,7 +312,8 @@ void PrimitivesExample::drawGui() {
 
     ImGui::SliderFloat("wavelength", &sett.source_frequency, 1.0, 10.0);
 
-    ImGui::Checkbox("moving source", &sett.source_move);
+    if(ImGui::Checkbox("moving source", &sett.source_move))
+      sett.time = 0.0;
     if (sett.source_move) {
       ImGui::SliderFloat("source speed", &sett.source_speed, 1.0, 4.0);
     }
@@ -335,6 +370,25 @@ void PrimitivesExample::keyPressEvent(KeyEvent &event) {
   if (event.key() == KeyEvent::Key::S) {
     sett.do_update = !sett.do_update;
   }
+
+  if (event.key() == KeyEvent::Key::C) {
+    _wave.clearState();
+  }
+
+  if (event.key() == KeyEvent::Key::D) {
+    update();
+  }
+
+  if (event.key() == KeyEvent::Key::W) {
+
+    if (plane->_mesh.primitive() == MeshPrimitive::Points) {
+      plane->_mesh.setPrimitive(MeshPrimitive::Triangles);
+    } else {
+      plane->_mesh.setPrimitive(MeshPrimitive::Points);
+    }
+  }
+
+  redraw();
 }
 
 void PrimitivesExample::keyReleaseEvent(KeyEvent &event) {
@@ -427,7 +481,7 @@ void PrimitivesExample::mouseZoom(MouseMoveEvent const &event, Vector2 delta) {
   auto dir =
       _cameraObject->transformation().transformVector(Vector3{0.0, 0.0, 1.0});
 
-  _cameraObject->translate(30.0f * delta.y() * dir);
+  _cameraObject->translate(10.0f * delta.y() * dir);
 }
 
 void PrimitivesExample::mousePan(MouseMoveEvent const &event, Vector2 delta) {}
