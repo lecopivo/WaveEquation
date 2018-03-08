@@ -35,9 +35,9 @@ void DrawableMesh::draw(const Matrix4 &       transformationMatrix,
       .setLightPosition(
           camera.cameraMatrix().transformPoint({5.0f, 5.0f, 7.0f}))
       .setTransformationMatrix(transformationMatrix)
-      .setNormalMatrix(transformationMatrix.rotation())
+      .setNormalMatrix(transformationMatrix.rotationScaling())
       .setProjectionMatrix(camera.projectionMatrix());
-
+#warning  rotationScaling() should be changed to rotation()
   _mesh.draw(_shader);
 }
 

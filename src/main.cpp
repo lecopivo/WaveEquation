@@ -104,6 +104,8 @@ public:
     v.setZero();
     v0.resize(n, n);
     v0.setZero();
+
+    sett.time = 0.0f;
   }
 
   void applyForce(float x, float y, float radius, float strength) {
@@ -135,12 +137,20 @@ public:
     for (int i = 1; i < n - 1; i++) {
       for (int j = 1; j < n - 1; j++) {
         if (b(i, j) != 0) {
-          v(i, j) = v0(i, j); // + lambda * b(i, j) *
-                              //      (-4 * u(i, j) + u(i + 1, j) + u(i - 1, j) +
-                              //       u(i, j + 1) + u(i, j - 1));
-	  v(i,j) -= lambda * 0.5* (4.0*b(i,j)+b(i+1,j)+b(i-1,j)+b(i,j+1)+b(i,j-1))*u(i,j);
-	  v(i,j) += lambda * 0.5* ( (b(i+1,j)+b(i,j))*u(i+1,j) + (b(i,j)+b(i-1,j))*u(i-1,j));
-	  v(i,j) += lambda * 0.5* ( (b(i,j+1)+b(i,j))*u(i,j+1) + (b(i,j)+b(i,j-1))*u(i,j-1));
+          v(i, j) =
+              v0(i, j); // + lambda * b(i, j) *
+                        //      (-4 * u(i, j) + u(i + 1, j) + u(i - 1, j) +
+                        //       u(i, j + 1) + u(i, j - 1));
+          v(i, j) -= lambda * 0.5 *
+                     (4.0 * b(i, j) + b(i + 1, j) + b(i - 1, j) + b(i, j + 1) +
+                      b(i, j - 1)) *
+                     u(i, j);
+          v(i, j) += lambda * 0.5 *
+                     ((b(i + 1, j) + b(i, j)) * u(i + 1, j) +
+                      (b(i, j) + b(i - 1, j)) * u(i - 1, j));
+          v(i, j) += lambda * 0.5 *
+                     ((b(i, j + 1) + b(i, j)) * u(i, j + 1) +
+                      (b(i, j) + b(i, j - 1)) * u(i, j - 1));
         }
       }
     }
@@ -312,10 +322,10 @@ void PrimitivesExample::drawGui() {
 
     ImGui::SliderFloat("wavelength", &sett.source_frequency, 1.0, 10.0);
 
-    if(ImGui::Checkbox("moving source", &sett.source_move))
+    if (ImGui::Checkbox("moving source", &sett.source_move))
       sett.time = 0.0;
     if (sett.source_move) {
-      ImGui::SliderFloat("source speed", &sett.source_speed, 1.0, 4.0);
+      ImGui::SliderFloat("source speed", &sett.source_speed, 1.0, 5.0);
     }
   }
 
