@@ -1,14 +1,58 @@
 * Installation guide
 
-  Install dependencies
-#+BEGIN_SRC bash
+** TL;DR
+
+   Download, install and build
+   #+BEGIN_SRC bash
+     sudo apt-get install cmake git gcc python3 pip3 eigen libsdl2-dev
+     sudo pip3 cget
+     git clone --recurse-submodules https://github.com/lecopivo/WaveEquation.git
+     cd WaveEquation
+     ./build/install-dependencies
+     cd ./build/Release/;
+     make -j
+   #+END_SRC
+
+   Run
+   #+BEGIN_SRC bash
+     ./src/main
+   #+END_SRC
+
+** Step-by-step explained
+
+   Install general development dependencies(You probably already have them already)
+   #+BEGIN_SRC bash
   # install standard development tools
-  sudo apt-get install cmake git gcc python3 pip3 eigen
+  sudo apt-get install cmake git gcc python3 pip3 eigen libsdl2-dev
+   #+END_SRC
+   (The above list is not complete - so please report any package you had to install)
 
-  # install cget
-  # cget is used to download and install dependencies from github
-  sudo pip3 cget
+   We use [[https://github.com/pfultz2/cget][=cget=]] to install dependencies which are on github. Thus install =cget= with =pip3=
+   #+BEGIN_SRC bash
+     sudo pip3 install cget
+   #+END_SRC
 
-  # install dependencies from github
-  ./build/install-dependencies
-#+END_SRC
+   Download this repository with submodules
+   #+BEGIN_SRC bash
+     git clone --recurse-submodules https://github.com/lecopivo/WaveEquation.git
+   #+END_SRC
+
+   Go to the repository direcotory
+   #+BEGIN_SRC bash
+     cd WaveEquation
+   #+END_SRC
+
+   Install external dependencies 
+   #+BEGIN_SRC bash
+   ./build/install-dependencies
+   #+END_SRC
+
+   Build this repository
+   #+BEGIN_SRC bash
+   cd ./build/Release/; make -j
+   #+END_SRC
+
+   Run
+   #+BEGIN_SRC bash
+   ./src/main
+   #+END_SRC
