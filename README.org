@@ -28,7 +28,7 @@
    #+END_SRC
    (The above list is not complete - so please report any package you had to install)
 
-   We use [[https://github.com/pfultz2/cget][=cget=]] to install dependencies which are on github. Thus install =cget= with =pip3=
+   We use [[https://github.com/pfultz2/cget][cget]] to install dependencies which are on github. Thus install =cget= with =pip3=
    #+BEGIN_SRC bash
      sudo pip3 install cget
    #+END_SRC
