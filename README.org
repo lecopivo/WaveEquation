@@ -9,7 +9,7 @@
      git clone --recurse-submodules https://github.com/lecopivo/WaveEquation.git
      cd WaveEquation
      ./build/install-dependencies
-     cd ./build/Release/;
+     cd ./build/Release/
      make -j
    #+END_SRC
 
