@@ -7,11 +7,4 @@ find_package(Magnum REQUIRED
 
 add_executable(main main.cpp DrawingPrimitives.cpp)
 
-target_link_libraries(main
-  Magnum::MeshTools
-  Magnum::Primitives
-  Magnum::Application
-  Magnum::Magnum
-  Magnum::Shaders
-  Magnum::SceneGraph
-  MagnumImGui)
+target_link_libraries(main ${GRAPHICS_LIBS})

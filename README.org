@@ -1,0 +1,14 @@
+* Installation guide
+
+  Install dependencies
+#+BEGIN_SRC bash
+  # install standard development tools
+  sudo apt-get install cmake git gcc python3 pip3 eigen
+
+  # install cget
+  # cget is used to download and install dependencies from github
+  sudo pip3 cget
+
+  # install dependencies from github
+  ./build/install-dependencies
+#+END_SRC
